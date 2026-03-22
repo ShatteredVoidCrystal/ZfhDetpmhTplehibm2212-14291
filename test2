@@ -71,8 +71,10 @@ local function GetClosestPlayer()
 		for _, v in next, Players:GetPlayers() do
 			if v ~= LocalPlayer then
 				if v.Character and v.Character:FindFirstChild(Environment.Settings.LockPart) and v.Character:FindFirstChildOfClass("Humanoid") then
+					local hum = v.Character:FindFirstChildOfClass("Humanoid")
+                    local torso = v.Character:FindFirstChild("Torso") or v.Character:FindFirstChild("UpperTorso")
 					if Environment.Settings.TeamCheck and v.Team == LocalPlayer.Team then continue end
-					if Environment.Settings.AliveCheck and v.Character:FindFirstChildOfClass("Humanoid").Health or v.Character.Torso.Material == Enum.Material.ForceField <= 0 then continue end
+					if Settings.AliveCheck and (hum.Health <= 0 or (torso and torso.Material == Enum.Material.ForceField)) then continue end
 					if Environment.Settings.WallCheck and #(Camera:GetPartsObscuringTarget({v.Character[Environment.Settings.LockPart].Position}, v.Character:GetDescendants())) > 0 then continue end
 
 					local Vector, OnScreen = Camera:WorldToViewportPoint(v.Character[Environment.Settings.LockPart].Position)
