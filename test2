@@ -70,27 +70,51 @@ local function GetClosestPlayer()
 
 		for _, v in next, Players:GetPlayers() do
 			if v ~= LocalPlayer then
-				if v.Character and v.Character:FindFirstChild(Environment.Settings.LockPart) and v.Character:FindFirstChildOfClass("Humanoid") then
-					local hum = v.Character:FindFirstChildOfClass("Humanoid")
-                    local torso = v.Character:FindFirstChild("Torso") or v.Character:FindFirstChild("UpperTorso")
-					if Environment.Settings.TeamCheck and v.Team == LocalPlayer.Team then continue end
-					if Settings.AliveCheck and (hum.Health <= 0 or (torso and torso.Material == Enum.Material.ForceField)) then continue end
-					if Environment.Settings.WallCheck and #(Camera:GetPartsObscuringTarget({v.Character[Environment.Settings.LockPart].Position}, v.Character:GetDescendants())) > 0 then continue end
+				local char = v.Character
+				if char and char:FindFirstChild(Environment.Settings.LockPart) and char:FindFirstChildOfClass("Humanoid") then
+					if Environment.Settings.TeamCheck and v.Team == LocalPlayer.Team then
+						continue
+					end
 
-					local Vector, OnScreen = Camera:WorldToViewportPoint(v.Character[Environment.Settings.LockPart].Position)
-					local Distance = (Vector2(UserInputService:GetMouseLocation().X, UserInputService:GetMouseLocation().Y) - Vector2(Vector.X, Vector.Y)).Magnitude
+					local hum = char:FindFirstChildOfClass("Humanoid")
+					local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
 
-					if Distance < RequiredDistance and OnScreen then
-						RequiredDistance = Distance
+					if Environment.Settings.AliveCheck and (hum.Health <= 0 or (torso and torso.Material == Enum.Material.ForceField)) then
+						continue
+					end
+
+					if Environment.Settings.WallCheck and #(Camera:GetPartsObscuringTarget({char[Environment.Settings.LockPart].Position}, char:GetDescendants())) > 0 then
+						continue
+					end
+
+					local vec, onScreen = Camera:WorldToViewportPoint(char[Environment.Settings.LockPart].Position)
+					local distance = (Vector2(UserInputService:GetMouseLocation().X, UserInputService:GetMouseLocation().Y) - Vector2(vec.X, vec.Y)).Magnitude
+
+					if distance < RequiredDistance and onScreen then
+						RequiredDistance = distance
 						Environment.Locked = v
 					end
 				end
 			end
 		end
-	elseif (Vector2(UserInputService:GetMouseLocation().X, UserInputService:GetMouseLocation().Y) - Vector2(Camera:WorldToViewportPoint(Environment.Locked.Character[Environment.Settings.LockPart].Position).X, Camera:WorldToViewportPoint(Environment.Locked.Character[Environment.Settings.LockPart].Position).Y)).Magnitude > RequiredDistance then
-		CancelLock()
+	else
+		local lockChar = Environment.Locked.Character
+		if not lockChar or not lockChar:FindFirstChild(Environment.Settings.LockPart) then
+			CancelLock()
+			return
+		end
+
+		local headPos = lockChar[Environment.Settings.LockPart].Position
+		local screenPos = Camera:WorldToViewportPoint(headPos)
+		local mousePos = UserInputService:GetMouseLocation()
+		local distance = (Vector2(mousePos.X, mousePos.Y) - Vector2(screenPos.X, screenPos.Y)).Magnitude
+
+		if distance > RequiredDistance then
+			CancelLock()
+		end
 	end
 end
+
 
 --// Typing Check
 
